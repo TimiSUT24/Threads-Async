@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace Threads_Async
 {
@@ -12,78 +7,65 @@ namespace Threads_Async
     {
         public string ?Name { get; set; }
         public double Distance { get; set; }
-        public double Speed { get; set; } 
-        public bool HasHalfWay { get; set; } = false;     
-        public bool Starts { get; set; } = false;
+        public double Speed { get; set; }
+        public bool HasHalfWay { get; set; } = false;
 
-        public async Task Start(CancellationToken token) 
-        {          
-            while (Distance <= 5000)
+        public void Start(Func<bool> raceActive)
+        {
+            while (Distance < 5000 && raceActive())
             {
                 double speedms = Speed / 3.6;
-                Distance += speedms;                            
+                Distance += speedms;
 
-                if (Distance > 2500 && !HasHalfWay)
+                if (Distance >= 2500 && !HasHalfWay)
                 {
-                    Console.WriteLine($"{Name} Has reached half way.\n");
+                    Console.WriteLine($"{Name} has reached halfway!");
                     HasHalfWay = true;
                 }
 
-                await Task.Delay(1000,token);               
-
-            }
-            Console.WriteLine($"{Name} Has finished the race");
-        }   
-            
-        public async Task NoGas()
-        {
-            Console.WriteLine($"\n{Name} No gas!!\n");    //speed goes to 0 and after 15 sec comes up again 
-            Speed = 0;
-
-            await Task.Run(async () => 
-                  {
-                    await Task.Delay(15000); 
-                    Speed = 120;
-                    Console.WriteLine($"\n{Name}'s Has gas\n");
-                  });
+                Thread.Sleep(1000);
+            }        
         }
 
-        public async Task ChangeTires()
+        public void NoGas()
         {
-            Console.WriteLine($"\n{Name} Tires is broken\n");
+            Console.WriteLine($"{Name} has no gas!");
+            double originalSpeed = Speed;
             Speed = 0;
-            await Task.Run(async () =>
-                  {
-                    await Task.Delay(10000);
-                    Speed = 120;
-                    Console.WriteLine($"\n{Name}'s Has changed tires\n");
-                  });
-
+            Thread.Sleep(15000);
+            Speed = originalSpeed;
+            Console.WriteLine($"{Name} has gas!");
         }
 
-        public async Task DirtyWindow()
+        public void ChangeTires()
         {
-            Console.WriteLine($"\n{Name} Need to wash windows\n");
+            Console.WriteLine($"{Name} is changing tires!");
+            double originalSpeed = Speed;
             Speed = 0;
-           await Task.Run(async () =>
-                 {
-                    await Task.Delay(5000);
-                    Speed = 120;
-                    Console.WriteLine($"\n{Name}'s windows are clean\n");
-                 });
-
+            Thread.Sleep(10000);
+            Speed = originalSpeed;
+            Console.WriteLine($"{Name} has new tires!");
         }
 
-        public async Task EngineProblem()
+        public void DirtyWindow()
         {
-            Console.WriteLine($"\n{Name} Engine Problem\n");
+            Console.WriteLine($"{Name} needs to clean windows!");
+            double originalSpeed = Speed;
+            Speed = 0;
+            Thread.Sleep(5000);
+            Speed = originalSpeed;
+            Console.WriteLine($"{Name} windows are clean!");
+        }
+
+        public void EngineProblem()
+        {
+            Console.WriteLine($"{Name} has engine problem speed reduced!");
             Speed -= 20;
-            if(Speed < 0)
+            if (Speed < 0)
             {
                 Speed = 0;
-            }
-            Console.WriteLine($"\n{Name} {Speed} km/h\n");
-            await Task.Delay(100);
+            }             
+            Console.WriteLine($"{Name} speed reduced to {Speed} km/h.");
         }
     }
 }
